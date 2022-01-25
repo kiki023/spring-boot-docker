@@ -41,13 +41,13 @@ pipeline{
     stage('UnDeploy'){
       steps{
         sh "echo UNDEPLOYING existing application"
-        sh "docker rm -f camchi/class27"
+        sh "docker rm -f class27"
       }
     }
     stage('deployment'){
       steps{
         sh "echo application ready for deployment"
-        sh "docker run -d -p 5700:8080 --name class27 camchi/springboot"
+        sh "docker run -d -p 5700:8080 --name class28 camchi/springboot"
       }
     }
   stage('emailNotification'){
