@@ -41,7 +41,7 @@ pipeline{
     stage('UnDeploy'){
       steps{
         sh "echo UNDEPLOYING existing application"
-        sh "docker rm -f camchi/bole"
+        sh "docker rm -f camchi/class27"
       }
     }
     stage('deployment'){
