@@ -34,20 +34,20 @@ pipeline{
       stage('predeployment'){
       steps{
         sh "echo creating docker image"
-        sh "docker build -t camchi/bole . "
-        sh "docker push camchi/bole"
+        sh "docker build -t camchi/springboot . "
+        sh "docker push camchi/springboot"
       }
     }
     stage('UnDeploy'){
       steps{
         sh "echo UNDEPLOYING existing application"
-        sh "docker rm -f webapp"
+        sh "docker rm -f camchi/bole"
       }
     }
     stage('deployment'){
       steps{
         sh "echo application ready for deployment"
-        sh "docker run -d -p 5700:8080 --name class27 camchi/bole"
+        sh "docker run -d -p 5700:8080 --name class27 camchi/springboot"
       }
     }
   stage('emailNotification'){
