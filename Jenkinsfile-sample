@@ -1,0 +1,99 @@
+pipeline{
+  agent any 
+  tools{
+    maven "Maven3.8.4"
+  }
+  stages{
+    stage('GitClone'){
+      steps{
+        echo "cloning the lastest applications version"
+        git "https://github.com/kiki023/spring-boot-docker"
+      }
+    }
+      stage('Test+Build'){
+      steps{
+        sh "echo Running unitTesting"
+        sh "mvn clean package"
+        echo "echo test successful and backupArtifacts created"
+      }
+    }
+      stage('codeQuality'){
+      steps{
+        sh "echo Running detail code analysis"
+        sh "mvn sonar:sonar"
+        sh  "echo All conditions met/passed"
+      }
+    }
+     // stage('upLoadArtifacts'){
+     // steps{
+       // sh "echo Running detail code analysis"
+       // sh "mvn deploy"
+       // sh "echo backupArtifacts in nexus"
+    //  }
+   // }
+      stage('predeployment'){
+      steps{
+        sh "echo creating docker image"
+        sh "docker build -t camchi/bole . "
+        sh "docker push camchi/bole"
+      }
+    }
+    stage('UnDeploy'){
+      steps{
+        sh "echo UNDEPLOYING existing application"
+        sh "docker rm -f webapp"
+      }
+    }
+    stage('deployment'){
+      steps{
+        sh "echo application ready for deployment"
+        sh "docker run -d -p 5700:8080 --name class27 camchi/bole"
+      }
+    }
+  stage('emailNotification'){
+    steps{
+      sh "echo deployment successful"
+    }
+  }
+
+  }
+}
+node{
+     
+    stage('SCM Checkout'){
+        git credentialsId: 'GIT_CREDENTIALS', url:  'https://github.com/simonLegah/UnityProject.git',branch: 'master'
+    }
+    
+    stage(" Maven Clean Package"){
+      def mavenHome =  tool name: "Maven-3.6.1", type: "maven"
+      def mavenCMD = "${mavenHome}/bin/mvn"
+      sh "${mavenCMD} clean package"
+      
+    } 
+    
+    
+    stage('Build Docker Image'){
+        sh 'docker build -t mylandmarktech/spring-boot-mongo .'
+    }
+    
+    stage('Push Docker Image'){
+        withCredentials([string(credentialsId: 'DOKCER_HUB_PASSWORD', variable: 'DOKCER_HUB_PASSWORD')]) {
+          sh "docker login -u mylandmarktech -p ${DOKCER_HUB_PASSWORD}"
+        }
+        sh 'docker push mylandmarktech/spring-boot-mongo'
+     }
+     
+     stage("Deploy To Kuberates Cluster"){
+       kubernetesDeploy(
+         configs: 'springBootMongo.yml', 
+         kubeconfigId: 'KUBERNATES_CONFIG',
+         enableConfigSubstitution: true
+        )
+     }
+	 
+	  /**
+      stage("Deploy To Kuberates Cluster"){
+        sh 'kubectl apply -f springBootMongo.yml'
+      } **/
+     
+}
